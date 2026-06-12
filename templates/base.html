@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="品質系統">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5.3.2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- 自訂CSS -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --font-noto: 'Noto Sans TC', sans-serif;
+            --font-roboto: 'Roboto', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-noto), 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        /* 英文使用 Roboto 字體 */
+        .en-font {
+            font-family: var(--font-roboto), sans-serif;
+        }
+        
+        /* 側邊欄樣式 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+            position: relative;
+        }
+        
+        .sidebar-toggle-btn {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+        
+        .sidebar-toggle-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .sidebar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .sidebar-brand:hover {
+            color: #3498db;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-menu-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-family: var(--font-noto), sans-serif;
+        }
+        
+        .sidebar-menu-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            padding-left: 25px;
+        }
+        
+        .sidebar-menu-link.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-left: 4px solid #fff;
+        }
+        
+        .sidebar-menu-link i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+        
+        /* Accordion 樣式 */
+        .sidebar-accordion {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-accordion-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .sidebar-accordion-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-noto), sans-serif;
+            user-select: none;
+        }
+        
+        .sidebar-accordion-header:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar-accordion-header.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar-accordion-header i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+        
+        .sidebar-accordion-header .accordion-arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-accordion-header.active .accordion-arrow {
+            transform: rotate(90deg);
+        }
+        
+        .sidebar-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-accordion-content.show {
+            max-height: 500px;
+        }
+        
+        .sidebar-accordion-content {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-accordion-content .sidebar-menu-link {
+            padding-left: 52px; /* 增加左邊距以顯示子選單層級 */
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .sidebar-accordion-content .sidebar-menu-link:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .user-info i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-family: var(--font-noto), sans-serif;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* 主內容區域 */
+        .main-content {
+            margin-left: 260px; /* 側邊欄顯示時的默認值（用戶已登入） */
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        /* 側邊欄隱藏時 */
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+        
+        .container-main {
+            padding: 30px;
+            padding-bottom: 50px;
+            width: 100%;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.sidebar-hidden {
+                margin-left: 0;
+            }
+            
+            .top-toggle-btn {
+                display: block !important;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1001;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            }
+        }
+        
+        .top-toggle-btn {
+            display: none;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* 浮動顯示按鈕（當側邊欄隱藏時顯示） */
+        .sidebar-show-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-show-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        
+        .sidebar-show-btn.show {
+            display: flex;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-show-btn {
+                display: none !important;
+            }
+        }
+        
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-top: 50px;
+            font-family: var(--font-noto), sans-serif;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .footer.sidebar-hidden {
+            margin-left: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                margin-left: 0 !important;
+            }
+        }
+        
+        /* 按鈕字體設定 */
+        .btn {
+            font-family: var(--font-noto), sans-serif;
+        }
+        
+        /* 標題字體設定 */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-noto), sans-serif;
+            font-weight: 700;
+        }
+    </style>
+    
+    <!-- 頁面專用CSS -->
+    {% block css_style %}{% endblock css_style %}
+    
+    <title>{% block title %}品質系統{% endblock %}</title>
+</head>
+
+<body>
+    <!-- 側邊欄覆蓋層 (僅移動設備) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    {% if user.is_authenticated %}
+        {% include 'components/sideBar.html' %}
+    {% endif %}
+
+    <!-- 主要內容區 -->
+    <main class="main-content">
+        <div class="container-main">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+    </main>
+    
+    <!-- 頁尾 (僅登入後顯示) -->
+    {% if user.is_authenticated %}
+    <footer class="footer" id="footer">
+        <div class="container text-center">
+            <p class="mb-0">&copy; {% now "Y" %} 毛毛與秀秀的家 版權所有</p>
+            <p class="mb-0"><small>建議使用 Chrome、Edge 或 Firefox 最新版本瀏覽器</small></p>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- Bootstrap 5.3.2 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- 頁面專用JavaScript -->
+    {% block extra_js %}{% endblock extra_js %}
+    
+    <!-- 登出確認功能與側邊欄控制 (僅登入後有效) -->
+    {% if user.is_authenticated %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 側邊欄切換功能
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        const topToggleBtn = document.getElementById('topToggleBtn');
+        const sidebarShowBtn = document.getElementById('sidebarShowBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.querySelector('.main-content');
+        const footer = document.getElementById('footer');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        // 檢查是否為移動設備
+        function checkMobile() {
+            return window.innerWidth <= 768;
+        }
+        
+        // 初始化側邊欄狀態
+        function initSidebar() {
+            const isMobile = checkMobile();
+            const sidebarState = localStorage.getItem('sidebarHidden');
+            
+            if (isMobile) {
+                // 移動設備：預設隱藏
+                sidebar.classList.add('hidden');
+                if (mainContent) mainContent.classList.add('sidebar-hidden');
+                if (footer) footer.classList.add('sidebar-hidden');
+            } else {
+                // 桌面設備：根據保存的狀態
+                if (sidebarState === 'true') {
+                    sidebar.classList.add('hidden');
+                    if (mainContent) mainContent.classList.add('sidebar-hidden');
+                    if (footer) footer.classList.add('sidebar-hidden');
+                    if (toggleIcon) {
+                        toggleIcon.classList.remove('fa-chevron-left');
+                        toggleIcon.classList.add('fa-chevron-right');
+                    }
+                } else {
+                    sidebar.classList.remove('hidden');
+                    if (mainContent) mainContent.classList.remove('sidebar-hidden');
+                    if (footer) footer.classList.remove('sidebar-hidden');
+                    if (toggleIcon) {
+                        toggleIcon.classList.remove('fa-chevron-right');
+                        toggleIcon.classList.add('fa-chevron-left');
+                    }
+                }
+            }
+            
+            // 更新浮動顯示按鈕
+            updateShowButton();
+        }
+        
+        // 更新浮動顯示按鈕的顯示狀態
+        function updateShowButton() {
+            const isMobile = checkMobile();
+            const isHidden = sidebar.classList.contains('hidden');
+            
+            if (!isMobile && sidebarShowBtn) {
+                if (isHidden) {
+                    sidebarShowBtn.classList.add('show');
+                } else {
+                    sidebarShowBtn.classList.remove('show');
+                }
+            }
+        }
+        
+        // 切換側邊欄顯示/隱藏
+        function toggleSidebar() {
+            const isMobile = checkMobile();
+            const isHidden = sidebar.classList.contains('hidden');
+            
+            if (isHidden) {
+                // 顯示側邊欄
+                sidebar.classList.remove('hidden');
+                if (mainContent) mainContent.classList.remove('sidebar-hidden');
+                if (footer) footer.classList.remove('sidebar-hidden');
+                if (toggleIcon) {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');
+                }
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+            } else {
+                // 隱藏側邊欄
+                sidebar.classList.add('hidden');
+                if (mainContent) mainContent.classList.add('sidebar-hidden');
+                if (footer) footer.classList.add('sidebar-hidden');
+                if (toggleIcon) {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+            }
+            
+            // 更新浮動顯示按鈕
+            updateShowButton();
+            
+            // 保存狀態到 localStorage（僅桌面設備）
+            if (!isMobile) {
+                localStorage.setItem('sidebarHidden', sidebar.classList.contains('hidden'));
+            }
+        }
+        
+        // 側邊欄內部切換按鈕
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+        
+        // 浮動顯示按鈕（當側邊欄隱藏時顯示）
+        if (sidebarShowBtn) {
+            sidebarShowBtn.addEventListener('click', function() {
+                const isMobile = checkMobile();
+                if (!isMobile) {
+                    toggleSidebar();
+                }
+            });
+        }
+        
+        // 頂部切換按鈕 (移動設備)
+        if (topToggleBtn) {
+            topToggleBtn.addEventListener('click', function() {
+                const isMobile = checkMobile();
+                if (isMobile) {
+                    sidebar.classList.toggle('show');
+                    sidebar.classList.remove('hidden');
+                    if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
+                }
+            });
+        }
+        
+        // 覆蓋層點擊關閉 (移動設備)
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                sidebar.classList.add('hidden');
+                sidebarOverlay.classList.remove('show');
+            });
+        }
+        
+        // 窗口大小改變時調整
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                // 如果從桌面切換到移動設備或反之，重新初始化
+                initSidebar();
+            }, 250);
+        });
+        
+        // 初始化
+        initSidebar();
+        
+        // 通用 Accordion 功能
+        const accordions = document.querySelectorAll('.sidebar-accordion-header');
+        accordions.forEach(header => {
+            const content = header.nextElementSibling;
+            
+            // 檢查當前頁面是否在子選單中，如果是則自動展開
+            const hasActiveLink = content.querySelector('.sidebar-menu-link.active');
+            if (hasActiveLink) {
+                header.classList.add('active');
+                content.classList.add('show');
+            }
+
+            header.addEventListener('click', function() {
+                const isActive = this.classList.contains('active');
+                if (isActive) {
+                    this.classList.remove('active');
+                    content.classList.remove('show');
+                } else {
+                    this.classList.add('active');
+                    content.classList.add('show');
+                }
+            });
+        });
+        
+        // 登出確認功能
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: '確定要登出嗎？',
+                    text: '您即將離開品質系統',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: '確定登出',
+                    cancelButtonText: '取消',
+                    reverseButtons: true,
+                    customClass: {
+                        confirmButton: 'me-2',
+                        cancelButton: 'ms-2'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('logoutForm').submit();
+                    }
+                });
+            });
+        }
+        
+        // 使用 SweetAlert2 顯示訊息
+        {% if messages %}
+            {% for message in messages %}
+            Swal.fire({
+                icon: '{{ message.tags }}',
+                title: '{{ message|safe }}',
+                showConfirmButton: false,
+                timer: 3000,
+                position: 'top-end',
+                toast: true,
+                background: '#f8f9fa'
+            });
+            {% endfor %}
+        {% endif %}
+    });
+    </script>
+    {% endif %}
+</body>
+</html>

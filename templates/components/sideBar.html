@@ -1,0 +1,104 @@
+<!-- 側邊欄組件 -->
+<aside class="sidebar" id="sidebar">
+    <!-- 側邊欄標題 -->
+    <div class="sidebar-header">
+        <a href="/" class="sidebar-brand">
+            <i class="fas fa-newspaper me-2"></i>紙系統
+        </a>
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="隱藏/顯示側邊欄">
+            <i class="fas fa-chevron-left" id="toggleIcon"></i>
+        </button>
+    </div>
+    
+    <!-- 側邊欄選單 -->
+    <ul class="sidebar-menu">
+        <li class="sidebar-menu-item">
+            <a href="/" class="sidebar-menu-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>首頁</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item">
+            <div class="sidebar-accordion-header" id="ipqcAccordion">
+                <i class="fas fa-clipboard-check"></i>
+                <span>IPQC</span>
+                <i class="fas fa-chevron-right accordion-arrow"></i>
+            </div>
+            <div class="sidebar-accordion-content" id="ipqcContent">
+                <a href="{% url 'defect_list' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'defect_list' %}active{% endif %}">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>不良分類</span>
+                </a>
+                <a href="{% url 'operator_list' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'operator_list' %}active{% endif %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span>作業人員</span>
+                </a>
+                <a href="{% url 'order_list' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+                    <i class="fas fa-list-ol"></i>
+                    <span>製令清單</span>
+                </a>
+                <a href="{% url 'spec_list' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'spec_list' %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>規格清單</span>
+                </a>
+                <a href="{% url 'ipqc_list' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'ipqc_list' %}active{% endif %}">
+                    <i class="fas fa-table"></i>
+                    <span>總表</span>
+                </a>
+            </div>
+        </li>
+        <li class="sidebar-menu-item">
+            <a href="#" class="sidebar-menu-link">
+                <i class="fas fa-users"></i>
+                <span>關於我們</span>
+            </a>
+        </li>
+        <!-- 設定 Accordion -->
+        <li class="sidebar-menu-item">
+            <div class="sidebar-accordion-header" id="settingsAccordion">
+                <i class="fas fa-cog"></i>
+                <span>設定</span>
+                <i class="fas fa-chevron-right accordion-arrow"></i>
+            </div>
+            <div class="sidebar-accordion-content" id="settingsContent">
+                <a href="{% url 'profile' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    <span>個人資料</span>
+                </a>
+                <a href="{% url 'password_change' %}" class="sidebar-menu-link {% if request.resolver_match.url_name == 'password_change' %}active{% endif %}">
+                    <i class="fas fa-key"></i>
+                    <span>變更密碼</span>
+                </a>
+            </div>
+        </li>
+    </ul>
+    
+    <!-- 側邊欄底部 -->
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <div>
+                <div class="user-name">{{ user.username }}</div>
+                <small style="opacity: 0.7;">{{ user.email|default:"" }}</small>
+            </div>
+        </div>
+        <a href="#" class="sidebar-menu-link" id="logoutLink" style="padding: 10px 20px; margin-top: 10px;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>登出系統</span>
+        </a>
+        <form id="logoutForm" action="{% url 'logout' %}" method="post" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'login' %}">
+        </form>
+    </div>
+</aside>
+
+<!-- 頂部切換按鈕 (僅移動設備) -->
+<button class="top-toggle-btn" id="topToggleBtn" title="顯示側邊欄">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- 浮動顯示按鈕 (桌面設備，當側邊欄隱藏時顯示) -->
+<button class="sidebar-show-btn" id="sidebarShowBtn" title="顯示側邊欄">
+    <i class="fas fa-bars"></i>
+</button>

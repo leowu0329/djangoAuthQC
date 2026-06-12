@@ -1,0 +1,7 @@
+venv/
+media/
+migrations/
+__pycache__/
+src/.env
+.DS_Store
+.env
