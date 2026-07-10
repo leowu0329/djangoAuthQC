@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}首頁 - 品質管理系統{% endblock %}
+
+{% block css_style %}
+<style>
+    /* 確保主內容區域排版美觀 */
+    .main-content {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 70vh;
+    }
+    .btn-custom-panel {
+        min-width: 180px;
+        padding: 20px;
+        font-size: 1.25rem;
+        font-weight: bold;
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-custom-panel:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-dark">品質管理系統控制台</h1>
+        <p class="text-muted lead">請選擇您要進行的檢驗或分析項目</p>
+    </div>
+
+    <div class="row g-4 justify-content-center mt-3">
+        <div class="col-6 col-md-3 text-center">
+            <a href="#" class="btn btn-outline-primary btn-custom-panel w-100 shadow-sm disabled">
+                <i class="fas fa-arrow-alt-circle-right d-block mb-2 fa-2x"></i>
+                IQC 進料檢驗
+            </a>
+        </div>
+
+        <div class="col-6 col-md-3 text-center">
+            <a href="{% url 'ipqc_analyze' %}" class="btn btn-primary btn-custom-panel w-100 shadow-sm text-white">
+                <i class="fas fa-chart-bar d-block mb-2 fa-2x"></i>
+                IPQC 製程巡檢
+            </a>
+        </div>
+
+        <div class="col-6 col-md-3 text-center">
+            <a href="#" class="btn btn-outline-success btn-custom-panel w-100 shadow-sm disabled">
+                <i class="fas fa-check-circle d-block mb-2 fa-2x"></i>
+                FQC 成品檢驗
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

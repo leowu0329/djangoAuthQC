@@ -1,0 +1,93 @@
+<div id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark vh-100 position-fixed sidebar-transition shadow">
+    <div class="d-flex align-items-center justify-content-between mb-3 w-100 sidebar-header">
+        <a href="{% url 'home' %}" class="d-flex align-items-center text-white text-decoration-none sidebar-logo">
+            <i class="fas fa-shield-alt fa-lg me-2 sidebar-icon text-warning"></i>
+            <span class="fs-5 fw-bold sidebar-text">QC 管理系統</span>
+        </a>
+        <button id="sidebarToggle" class="btn btn-sm btn-outline-light border-0">
+            <i class="fas fa-bars fs-5"></i>
+        </button>
+    </div>
+    <hr>
+
+    <ul class="nav nav-pills flex-column mb-auto w-100">
+        <li class="nav-item mb-1">
+            <a href="{% url 'home' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-home fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">首頁</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="{% url 'order_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-file-invoice fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">工單確認紀錄</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="{% url 'ipqc_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'ipqc_list' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-tasks fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">IPQC巡檢紀錄</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="{% url 'defect_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'defect_list' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-exclamation-triangle fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">不良缺點清單</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="{% url 'operator_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'operator_list' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-users fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">作業員清單</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a href="{% url 'spec_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'spec_list' %}active{% endif %}">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-cogs fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">巡檢標準說明</span>
+            </a>
+        </li>
+    </ul>
+    <hr>
+
+    <div class="dropdown w-100">
+        {% if user.is_authenticated %}
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle py-1" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-user-circle fa-lg"></i>
+                </div>
+                <strong class="sidebar-text ms-2">{{ user.username }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                <li><a class="dropdown-menu-item dropdown-item" href="{% url 'profile' %}">個人訊息</a></li>
+                <li><a class="dropdown-menu-item dropdown-item" href="{% url 'password_change' %}">修改密碼</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{% url 'logout' %}" method="post" style="display:inline; width:100%;">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">登出</button>
+                    </form>
+                </li>
+            </ul>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-link text-white d-flex align-items-center py-2 px-3">
+                <div class="sidebar-icon-wrapper text-center">
+                    <i class="fas fa-sign-in-alt fa-fw"></i>
+                </div>
+                <span class="sidebar-text ms-2">登入</span>
+            </a>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django Auth QC{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==================== 【關鍵新增】將新字體套用到全站全域 ==================== */
+        body {
+            font-family: 'Roboto', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 側邊欄與主要內容區的平滑動畫效果 */
+        .sidebar-transition {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 預設展開狀態樣式 */
+        #sidebar {
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        /* 預設主內容區間距 */
+        #main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            min-height: 100vh;
+        }
+
+        .sidebar-icon-wrapper {
+            width: 25px;
+            display: inline-block;
+        }
+
+        /* ==================== 縮合狀態（Mini 模式）CSS 控制 ==================== */
+        #sidebar.collapsed {
+            width: 75px !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        #main-content.sidebar-collapsed {
+            margin-left: 75px !important;
+            width: calc(100% - 75px) !important;
+        }
+
+        #sidebar.collapsed .sidebar-text,
+        #sidebar.collapsed .dropdown-toggle::after {
+            display: none !important;
+        }
+
+        /* 縮合時隱藏整個 QC管理系統 Logo 區塊 */
+        #sidebar.collapsed .sidebar-logo {
+            display: none !important;
+        }
+
+        /* 讓 Toggle 三條線按鈕在窄版空間中完美置中 */
+        #sidebar.collapsed .sidebar-header {
+            justify-content: center !important;
+            padding: 0 !important;
+        }
+        #sidebar.collapsed #sidebarToggle {
+            margin: 0 auto !important;
+        }
+
+        /* 縮合時選單項目置中調整 */
+        #sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        #sidebar.collapsed .d-flex {
+            justify-content: center !important;
+        }
+        #sidebar.collapsed hr {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 75px;
+            }
+            #sidebar .sidebar-text {
+                display: none;
+            }
+            #main-content {
+                margin-left: 75px;
+                width: calc(100% - 75px);
+            }
+            #sidebarToggle {
+                display: none;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-light">
+
+    <div class="d-flex">
+        <div id="sidebar" class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark vh-100 position-fixed sidebar-transition shadow">
+            <div class="d-flex align-items-center justify-content-between mb-3 w-100 sidebar-header">
+                <a href="{% url 'home' %}" class="d-flex align-items-center text-white text-decoration-none sidebar-logo">
+                    <i class="fas fa-shield-alt fa-lg me-2 sidebar-icon text-warning"></i>
+                    <span class="fs-5 fw-bold sidebar-text">QC 管理系統</span>
+                </a>
+                <button id="sidebarToggle" class="btn btn-sm btn-outline-light border-0">
+                    <i class="fas fa-bars fs-5"></i>
+                </button>
+            </div>
+            <hr>
+
+            <ul class="nav nav-pills flex-column mb-auto w-100">
+                <li class="nav-item mb-1">
+                    <a href="{% url 'home' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-home fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">首頁</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="{% url 'order_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-file-invoice fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">工單確認紀錄</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="{% url 'ipqc_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'ipqc_list' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-tasks fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">IPQC巡檢紀錄</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="{% url 'defect_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'defect_list' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-exclamation-triangle fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">不良缺點清單</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="{% url 'operator_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'operator_list' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-users fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">作業員清單</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="{% url 'spec_list' %}" class="nav-link text-white d-flex align-items-center py-2 px-3 {% if request.resolver_match.url_name == 'spec_list' %}active{% endif %}">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-cogs fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">巡檢標準說明</span>
+                    </a>
+                </li>
+            </ul>
+            <hr>
+
+            <div class="dropdown w-100">
+                {% if user.is_authenticated %}
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle py-1" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-user-circle fa-lg"></i>
+                        </div>
+                        <strong class="sidebar-text ms-2">{{ user.username }}</strong>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                        <li><a class="dropdown-menu-item dropdown-item" href="{% url 'profile' %}">個人訊息</a></li>
+                        <li><a class="dropdown-menu-item dropdown-item" href="{% url 'password_change' %}">修改密碼</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" style="display:inline; width:100%;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item">登出</button>
+                            </form>
+                        </li>
+                    </ul>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link text-white d-flex align-items-center py-2 px-3">
+                        <div class="sidebar-icon-wrapper text-center">
+                            <i class="fas fa-sign-in-alt fa-fw"></i>
+                        </div>
+                        <span class="sidebar-text ms-2">登入</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="main-content" class="sidebar-transition p-4">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("main-content");
+            const toggleBtn = document.getElementById("sidebarToggle");
+
+            if (localStorage.getItem("sidebar_state") === "collapsed") {
+                if (sidebar) sidebar.classList.add("collapsed");
+                if (mainContent) mainContent.classList.add("sidebar-collapsed");
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener("click", function () {
+                    sidebar.classList.toggle("collapsed");
+                    mainContent.classList.toggle("sidebar-collapsed");
+
+                    if (sidebar.classList.contains("collapsed")) {
+                        localStorage.setItem("sidebar_state", "collapsed");
+                    } else {
+                        localStorage.setItem("sidebar_state", "expanded");
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

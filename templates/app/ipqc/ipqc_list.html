@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+
+{% block title %}IPQC 巡檢紀錄管理{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center justify-content-between">
+                <div class="col-xl-8 col-md-12">
+                    <form method="get" action="" class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" name="search" class="form-control"
+                                    placeholder="輸入多個關鍵字並以空白隔開 (如: 工單 品名)" value="{{ search_query }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-secondary fw-bold">起</span>
+                                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                                </div>
+                                <span class="text-muted">～</span>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-secondary fw-bold">迄</span>
+                                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex gap-2">
+                            <button class="btn btn-primary" type="submit" data-bs-toggle="tooltip" title="篩選">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                 
+                            <a href="{% url 'ipqc_list' %}" class="btn btn-danger" data-bs-toggle="tooltip" title="取消">
+                                <i class="fas fa-times-circle"></i>
+                            </a>
+                      
+                        </div>
+                    </form>
+                </div>
+
+                <div
+                    class="col-xl-4 col-md-12 text-xl-end d-flex flex-wrap gap-2 justify-content-start justify-content-xl-end align-items-center">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addIPQCModal">
+                        <i class="fas fa-plus"></i> 新增巡檢
+                    </button>
+
+                    <a href="{% url 'export_ipqc_excel' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-export"></i> 匯出 Excel
+                    </a>
+
+                    <form action="{% url 'import_ipqc_excel' %}" method="post" enctype="multipart/form-data"
+                        id="importForm" class="d-none">
+                        {% csrf_token %}
+                        <input type="file" name="excel_file" id="excelFileInput" accept=".xlsx, .xls"
+                            onchange="document.getElementById('importForm').submit();">
+                    </form>
+                    <label for="excelFileInput" class="btn btn-outline-success m-0" style="cursor: pointer;">
+                        <i class="fas fa-file-import"></i> 匯入資料
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm w-100">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>IPQC 巡檢紀錄清單</h5>
+            <span class="badge bg-light text-dark">總筆數：{{ page_obj.paginator.count }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 65vh;">
+                <table class="table table-hover table-striped align-middle mb-0 text-nowrap" id="ipqcTable">
+                    <thead class="table-dark sticky-top text-center">
+                        <tr>
+                            <th scope="col">操作</th>
+                            <th scope="col">日期</th>
+                            <th scope="col">時間</th>
+                            <th scope="col">製令工單</th>
+                            <th scope="col">品號</th>
+                            <th scope="col">品名</th>
+                            <th scope="col">規格</th>
+                            <th scope="col">數量</th>
+                            <th scope="col">判定</th>
+                            <th scope="col">不良類型</th>
+                            <th scope="col">不良狀態</th>
+                            <th scope="col">後續處置</th>
+                            <th scope="col">備註</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in page_obj %}
+                        <tr data-record-id="{{ item.pk }}">
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-warning edit-btn"
+                                        data-id="{{ item.pk }}" data-date="{{ item.date|date:'Y-m-d' }}"
+                                        data-time="{{ item.time|time:'H:i:s' }}"
+                                        data-order="{{ item.order_number|default:'' }}"
+                                        data-operator="{{ item.operator|default:'' }}"
+                                        data-inspector="{{ item.inspector|default:'' }}"
+                                        data-prod-num="{{ item.product_number|default:'' }}"
+                                        data-prod-name="{{ item.product_name|default:'' }}"
+                                        data-ver="{{ item.draw_ver|default:'' }}"
+                                        data-qty="{{ item.quantity|default:'0' }}"
+                                        data-def-type="{{ item.defect_type|default:'' }}" title="編輯">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+
+                                    <button type="button" class="btn btn-outline-danger delete-btn"
+                                        data-id="{{ item.pk }}" data-order="{{ item.order_number|default:'未填工單' }}"
+                                        title="刪除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="text-center cell-date">{{ item.date|date:"Y-m-d"|default:"-" }}</td>
+                            <td class="text-center cell-time">{{ item.time|time:"H:i"|default:"-" }}</td>
+                            <td class="fw-bold text-secondary text-center cell-order">{{ item.order_number|default:"-"}}</td>
+                            <td class="cell-prod-num">{{ item.product_number|default:"-" }}</td>
+                            <td class="cell-prod-name">{{ item.product_name|default:"-" }}</td>
+
+                            <td title="{{ item.spec }}" style="cursor: help;" class="cell-spec">
+                                <span class="js-raw-text d-none">{{ item.spec|default:'' }}</span>
+                                <span class="display-text">{{ item.spec|truncatechars:13|default:"-" }}</span>
+                            </td>
+                            <td class="text-end cell-qty">{{ item.quantity|default:"0" }}</td>
+                            <td class="text-center cell-determination">
+                                {% if item.determination == "允收" %}
+                                <span class="badge bg-success">允收</span>
+                                {% elif item.determination == "異常" %}
+                                <span class="badge bg-danger">異常</span>
+                                {% else %}
+                                <span class="text-muted">{{ item.determination|default:"-" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center cell-def-type">
+                                {% if item.defect_type %}
+                                <span class="badge bg-danger">{{ item.defect_type }}</span>
+                                {% else %}
+                                
+                                {% endif %}
+                            </td>
+                            <td title="{{ item.defect_status|default:'' }}" style="cursor: help;" class="cell-def-status">
+                                <span class="js-raw-text d-none">{{ item.defect_status|default:'' }}</span>
+                                <span class="display-text">{{ item.defect_status|truncatechars:13|default:"" }}</span>
+                            </td>
+                            <td title="{{ item.handing_measure|default:'' }}" style="cursor: help;" class="cell-measure">
+                                <span class="js-raw-text d-none">{{ item.handing_measure|default:'' }}</span>
+                                <span class="display-text">{{ item.handing_measure|truncatechars:13|default:""}}</span>
+                            </td>
+                            <td title="{{ item.mark|default:'' }}" style="cursor: help;" class="cell-mark">
+                                <span class="js-raw-text d-none">{{ item.mark|default:'' }}</span>
+                                <span class="display-text">{{ item.mark|truncatechars:13|default:"" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center py-4 text-muted">
+                                <i class="fas fa-folder-open fa-2x mb-2 d-block"></i>目前暫無符合條件的 IPQC 巡檢紀錄。
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap py-3 gap-2">
+            <div class="text-muted small">
+                {% if page_obj.paginator.count > 0 %}
+                第 {{ page_obj.start_index }}-{{ page_obj.end_index }} 筆，共 {{ page_obj.paginator.num_pages }} 頁
+                {% else %}
+                共 0 頁
+                {% endif %}
+            </div>
+
+            <div>
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-item-link page-link"
+                                href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo;</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-item-link page-link"
+                                href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&raquo;</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="addIPQCModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form action="{% url 'ipqc_create' %}" method="post" class="modal-content text-dark">
+            {% csrf_token %}
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>新增 IPQC 巡檢紀錄</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold">檢驗日期</label>{{ form.date }}</div>
+                    <div class="col-md-6"><label class="form-label fw-bold">檢驗時間</label>{{ form.time }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">製令工單</label>{{ form.order_number }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">操作人員</label>{{ form.operator }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">檢驗人員</label>{{ form.inspector }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">品號</label>{{ form.product_number }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">品名</label>{{ form.product_name }}</div>
+                    <div class="col-md-2"><label class="form-label fw-bold">版本</label>{{ form.draw_ver }}</div>
+                    <div class="col-md-2"><label class="form-label fw-bold">數量</label>{{ form.quantity }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">規格說明</label>{{ form.spec }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">判定</label>{{ form.determination }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">不良類型</label>{{ form.defect_type }}</div>
+                    <div class="col-12"><label class="form-label fw-bold">不良狀態描述</label>{{ form.defect_status }}</div>
+                    <div class="col-md-6"><label class="form-label fw-bold">後續處置措施</label>{{ form.handing_measure }}
+                    </div>
+                    <div class="col-md-6"><label class="form-label fw-bold">備註</label>{{ form.mark }}</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-success px-4">儲存紀錄</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="editIPQCModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form id="editIPQCForm" method="post" action="" class="modal-content text-dark">
+            {% csrf_token %}
+
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>編輯修改 IPQC 巡檢紀錄</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold">檢驗日期</label>{{ form.date }}</div>
+                    <div class="col-md-6"><label class="form-label fw-bold">檢驗時間</label>{{ form.time }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">製令工單</label>{{ form.order_number }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">操作人員</label>{{ form.operator }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">檢驗人員</label>{{ form.inspector }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">品號</label>{{ form.product_number }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">品名</label>{{ form.product_name }}</div>
+                    <div class="col-md-2"><label class="form-label fw-bold">版本</label>{{ form.draw_ver }}</div>
+                    <div class="col-md-2"><label class="form-label fw-bold">數量</label>{{ form.quantity }}</div>
+                    <div class="col-md-8"><label class="form-label fw-bold">規格說明</label>{{ form.spec }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">判定</label>{{ form.determination }}</div>
+                    <div class="col-md-4"><label class="form-label fw-bold">不良類型</label>{{ form.defect_type }}</div>
+                    <div class="col-12"><label class="form-label fw-bold">不良狀態描述</label>{{ form.defect_status }}</div>
+                    <div class="col-md-6"><label class="form-label fw-bold">後續處置措施</label>{{ form.handing_measure }}
+                    </div>
+                    <div class="col-md-6"><label class="form-label fw-bold">備註</label>{{ form.mark }}</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-warning px-4 fw-bold">更新紀錄</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>刪除確認警告</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-1 fs-5">您確定要刪除這筆巡檢紀錄嗎？</p>
+                <p class="text-danger fw-bold mb-0">相關製令工單: <span id="deleteModalOrderNum"></span></p>
+                <small class="text-muted d-block mt-2">※ 警語：此操作執行後資料將永久抹除，無法還原。</small>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">安全取消</button>
+                <form id="deleteConfirmForm" method="post" action="" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4">確認執行刪除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="statusMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            {% if messages %}
+            {% for message in messages %}
+            <div
+                class="modal-header {% if 'success' in message.tags %}bg-success{% else %}bg-danger{% endif %} text-white">
+                <h5 class="modal-title">
+                    <i
+                        class="fas {% if 'success' in message.tags %}fa-check-circle{% else %}fa-times-circle{% endif %} me-2"></i>
+                    系統操作提示
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4 fs-5">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. 自動彈出操作訊息提示 Modal (防錯清理：移除了所有非標準註釋)
+        {% if messages %}
+        const msgModalEl = document.getElementById('statusMessageModal');
+        if (msgModalEl && typeof bootstrap !== 'undefined') {
+            const msgModal = bootstrap.Modal.getOrCreateInstance(msgModalEl);
+            msgModal.show();
+        }
+        {% endif %}
+
+        // 2. 啟動 Bootstrap Tooltip 懸停提示功能
+        if (typeof bootstrap !== 'undefined') {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        // 3. 編輯按鈕動態填充資料 (關鍵新增：將所有註釋更改為標準雙斜線 // 徹底解除 SyntaxError 鎖定)
+        const editButtons = document.querySelectorAll('.edit-btn');
+        const editModalEl = document.getElementById('editIPQCModal');
+
+        if (editModalEl && typeof bootstrap !== 'undefined') {
+            const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const recordId = this.getAttribute('data-id');
+                    const row = this.closest('tr');
+
+                    // 動態切換路由 action 位址
+                    document.getElementById('editIPQCForm').action = `/ipqc/edit/${recordId}/`;
+
+                    // 填入基礎短文字
+                    editModalEl.querySelector('[name="date"]').value = this.getAttribute('data-date');
+                    editModalEl.querySelector('[name="time"]').value = this.getAttribute('data-time');
+                    editModalEl.querySelector('[name="order_number"]').value = this.getAttribute('data-order');
+                    editModalEl.querySelector('[name="operator"]').value = this.getAttribute('data-operator');
+                    editModalEl.querySelector('[name="inspector"]').value = this.getAttribute('data-inspector');
+                    editModalEl.querySelector('[name="product_number"]').value = this.getAttribute('data-prod-num');
+                    editModalEl.querySelector('[name="product_name"]').value = this.getAttribute('data-prod-name');
+                    editModalEl.querySelector('[name="draw_ver"]').value = this.getAttribute('data-ver');
+                    editModalEl.querySelector('[name="quantity"]').value = this.getAttribute('data-qty');
+                    editModalEl.querySelector('[name="defect_type"]').value = this.getAttribute('data-def-type');
+
+                    // 填入長文字 (改用通用 name 比對選取器，防止型態不對稱導致崩潰)
+                    editModalEl.querySelector('[name="spec"]').value = row.querySelector('.cell-spec .js-raw-text').textContent.trim();
+                    editModalEl.querySelector('[name="defect_status"]').value = row.querySelector('.cell-def-status .js-raw-text').textContent.trim();
+                    editModalEl.querySelector('[name="handing_measure"]').value = row.querySelector('.cell-measure .js-raw-text').textContent.trim();
+                    editModalEl.querySelector('[name="mark"]').value = row.querySelector('.cell-mark .js-raw-text').textContent.trim();
+
+                    editModal.show();
+                });
+            });
+        }
+
+        // 4. 刪除按鈕動態綁定確認視窗
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        const deleteModalEl = document.getElementById('deleteConfirmModal');
+
+        if (deleteModalEl && typeof bootstrap !== 'undefined') {
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(deleteModalEl);
+
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const recordId = this.getAttribute('data-id');
+                    const orderNum = this.getAttribute('data-order');
+
+                    document.getElementById('deleteConfirmForm').action = `/ipqc/delete/${recordId}/`;
+                    document.getElementById('deleteModalOrderNum').textContent = orderNum;
+
+                    deleteModal.show();
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

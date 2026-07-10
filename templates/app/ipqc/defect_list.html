@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}不良分類{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm w-100">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>不良分類清單</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle en-font">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 100px;">ID</th>
+                            <th>不良類型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.defect_type|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">目前無資料</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}IPQC 圖表分析{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+            <li class="breadcrumb-item active" aria-current="page">IPQC 圖表分析</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="fas fa-chart-pie me-2"></i>IPQC圖表分析
+            </h2>
+            <p class="text-muted mb-0">製程品質數據可視化看板</p>
+        </div>
+        <div>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-undo me-1"></i>返回首頁
+            </a>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="ipqcAnalyzeTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="defect-dist-tab" data-bs-toggle="tab" data-bs-target="#defect-dist" type="button" role="tab" aria-controls="defect-dist" aria-selected="true">
+                <i class="fas fa-th-list me-1"></i>不良種類分佈圖
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="process-rate-tab" data-bs-toggle="tab" data-bs-target="#process-rate" type="button" role="tab" aria-controls="process-rate" aria-selected="false">
+                <i class="fas fa-percentage me-1"></i>製程不良率
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="defect-trend-tab" data-bs-toggle="tab" data-bs-target="#defect-trend" type="button" role="tab" aria-controls="defect-trend" aria-selected="false">
+                <i class="fas fa-chart-line me-1"></i>不良分類推移圖
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="ipqcAnalyzeTabContent">
+        
+        <div class="tab-pane fade show active" id="defect-dist" role="tabpanel" aria-labelledby="defect-dist-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white fw-bold text-secondary py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-bar me-1 text-primary"></i> 近三個月製程品質趨勢圖</span>
+                            <small class="text-muted">主軸：不良批數 / 副軸：不良率</small>
+                        </div>
+                        <div class="card-body" style="position: relative; min-height: 380px;">
+                            <canvas id="ipqcTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white fw-bold text-secondary py-3 border-bottom">
+                            <i class="fas fa-table me-1 text-info"></i> 近三個月不良項目細項統計表
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped align-middle mb-0 text-center">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" class="text-start ps-4" style="width: 40%;">不良項目項目 (Defect Type)</th>
+                                            {% for label in labels %}
+                                                <th scope="col">{{ label }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if table_rows %}
+                                            {% for row in table_rows %}
+                                                <tr>
+                                                    <td class="text-start fw-bold text-secondary ps-4">
+                                                        <i class="fas fa-caret-right text-danger me-2"></i>{{ row.defect_type }}
+                                                    </td>
+                                                    {% for count in row.counts %}
+                                                        <td>
+                                                            {% if count > 0 %}
+                                                                <span class="badge bg-danger bg-opacity-10 text-danger fw-bold px-3 py-2 rounded">
+                                                                    {{ count }} 批
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="text-muted small">0</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    {% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="{{ labels|length|add:1 }}" class="py-5 text-muted">
+                                                    <i class="fas fa-folder-open d-block mb-2 fa-2x text-black-50"></i>尚無統計數據。
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="process-rate" role="tabpanel" aria-labelledby="process-rate-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold text-secondary py-3 border-bottom">
+                    <i class="fas fa-percentage me-1 text-primary"></i> 近三個月各製程品質指標統計表
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered align-middle mb-0 text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th rowspan="2" class="align-middle" style="width: 15%;">製程名稱</th>
+                                    <th rowspan="2" class="align-middle" style="width: 10%;">工單前綴</th>
+                                    {% for label in labels %}
+                                        <th colspan="3">{{ label }}</th>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    {% for label in labels %}
+                                        <th class="table-secondary small py-1" style="width: 8%;">檢驗數</th>
+                                        <th class="table-secondary small py-1" style="width: 8%;">不良數</th>
+                                        <th class="table-secondary small py-1" style="width: 9%;">不良率</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in process_table_data %}
+                                    <tr>
+                                        <td class="fw-bold text-start ps-3 bg-light"><i class="fas fa-industry me-2 text-muted"></i>{{ row.name }}</td>
+                                        <td><code>{{ row.prefix }}</code></td>
+                                        {% for m_data in row.months %}
+                                            <td>{{ m_data.inspections }}</td>
+                                            <td {% if m_data.defects > 0 %}class="text-danger fw-bold"{% endif %}>{{ m_data.defects }}</td>
+                                            <td {% if m_data.rate > 0 %}class="table-warning bg-opacity-10 text-danger fw-bold"{% endif %}>
+                                                {{ m_data.rate }} %
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="defect-trend" role="tabpanel" aria-labelledby="defect-trend-tab">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white fw-bold text-secondary py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-line me-1 text-success"></i> 2026年 五大生產製程不良率推移趨勢圖</span>
+                            <span class="badge bg-success bg-opacity-10 text-success">1月 - 9月 推移</span>
+                        </div>
+                        <div class="card-body" style="position: relative; min-height: 400px; width: 100%;">
+                            <canvas id="ipqcProcessTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white fw-bold text-secondary py-3 border-bottom">
+                            <i class="fas fa-table me-1 text-warning"></i> 2026年 五大製程不良率統計表 (%)
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered align-middle mb-0 text-center">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col" class="text-start ps-4" style="width: 20%;">製程分類 (Y軸)</th>
+                                            <th scope="col" style="width: 12%;">工單前綴</th>
+                                            {% for m_label in labels_9m %}
+                                                <th scope="col">{{ m_label }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in trend_matrix_9m %}
+                                            <tr>
+                                                <td class="text-start fw-bold text-dark ps-4">
+                                                    <i class="fas fa-industry text-muted me-2"></i>{{ row.name }}
+                                                </td>
+                                                <td><span class="badge bg-light text-secondary border"># {{ row.prefix }}</span></td>
+                                                {% for rate in row.rates %}
+                                                    <td {% if rate > 0 %}class="table-warning bg-opacity-10 fw-bold text-danger"{% endif %}>
+                                                        {{ rate }} %
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        
+        // ==========================================
+        // 【圖表 1】: 不良種類分佈圖 (Tab 1)
+        // ==========================================
+        const labelsData = {{ labels|safe }};
+        const defectBatchesData = {{ defect_batches|safe }};
+        const defectRatesData = {{ defect_rates|safe }};
+        const ctx1 = document.getElementById('ipqcTrendChart').getContext('2d');
+        
+        const ipqcChart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: labelsData,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: '不良批數 (批)',
+                        data: defectBatchesData,
+                        backgroundColor: 'rgba(220, 53, 69, 0.75)',
+                        borderColor: 'rgb(220, 53, 69)',
+                        borderWidth: 1,
+                        yAxisID: 'yA_Primary',
+                        barPercentage: 0.3
+                    },
+                    {
+                        type: 'line',
+                        label: '不良率 (%)',
+                        data: defectRatesData,
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        borderColor: 'rgb(255, 140, 0)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgb(220, 53, 69)',
+                        pointRadius: 5,
+                        tension: 0.15,
+                        yAxisID: 'yB_Secondary'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    yA_Primary: { type: 'linear', position: 'left', ticks: { beginAtZero: true, stepSize: 1 } },
+                    yB_Secondary: { type: 'linear', position: 'right', ticks: { beginAtZero: true, callback: function(v){ return v+'%'; } }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        // ==========================================
+        // 【圖表 2】: 1-9月五大製程推移圖 (Tab 3)
+        // ==========================================
+        const labels9M = {{ labels_9m|safe }};
+        const trendMatrix9M = {{ trend_matrix_9m|safe }};
+        
+        const palette = [
+            'rgb(54, 162, 235)',   // 藍色 -> 泵浦
+            'rgb(255, 99, 132)',   // 紅色 -> 機加
+            'rgb(40, 167, 69)',    // 綠色 -> 射加
+            'rgb(255, 159, 64)',   // 橘色 -> 射出
+            'rgb(153, 102, 255)'   // 紫色 -> 燒嵌
+        ];
+
+        const lineDatasets = trendMatrix9M.map((process, index) => {
+            return {
+                label: process.name + ' 不良率 (%)',
+                data: process.rates,
+                borderColor: palette[index],
+                backgroundColor: palette[index].replace('rgb', 'rgba').replace(')', ', 0.15)'),
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.1, 
+                fill: false
+            };
+        });
+
+        const ctx2 = document.getElementById('ipqcProcessTrendChart').getContext('2d');
+        const processTrendChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labels9M,
+                datasets: lineDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 20, font: { weight: 'bold' } } },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { grid: { color: '#eaeaea' } },
+                    y: {
+                        type: 'linear',
+                        beginAtZero: true,
+                        title: { display: true, text: '製程不良率 (%)', font: { weight: 'bold', size: 13 } },
+                        ticks: {
+                            callback: function(val) { return val + '%'; }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==========================================
+        // 解決隱藏分頁切換時的寬度重繪失效 BUG
+        // ==========================================
+        const chartsMapping = [
+            { id: 'defect-dist-tab', instance: ipqcChart },
+            { id: 'defect-trend-tab', instance: processTrendChart }
+        ];
+        
+        chartsMapping.forEach(map => {
+            const tabBtn = document.getElementById(map.id);
+            if (tabBtn) {
+                tabBtn.addEventListener('shown.bs.tab', function () {
+                    map.instance.resize();
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

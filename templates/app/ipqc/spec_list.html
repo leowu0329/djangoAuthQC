@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}規格清單{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm w-100 en-font">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-file-alt me-2"></i>產品規格清單</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>品號</th>
+                            <th>品名</th>
+                            <th>規格</th>
+                            <th>版次</th>
+                            <th>檢驗時數</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.product_number|default:"-" }}</td>
+                            <td style="font-family: var(--font-noto);">{{ item.product_name|default:"-" }}</td>
+                            <td>{{ item.spec|default:"-" }}</td>
+                            <td>{{ item.draw_ver|default:"-" }}</td>
+                            <td>{{ item.inspection_hours|default:0 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4" style="font-family: var(--font-noto);">目前無資料</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
